@@ -1,6 +1,6 @@
 ---
-title: "Ejemplos_taller"
-author: "Patricia"
+title: "Ejemplo realizado durante el taller de RMarkdown dictado por Gabriela Sandoval en el primer satRdaySantiago"
+author: "Patricia Loto"
 date: "14 de diciembre de 2018"
 output: 
   html_document:
@@ -19,7 +19,7 @@ Este es un documento de *R* **RMarkdown** con el que podemos obtener archivos en
 
 1. HTML
 2. PDF
-3. Ms Word
+3. Ms. Word
 
 
 Más información en el siguiente [link](http://rmarkdown.rstudio.com)
@@ -45,7 +45,7 @@ library("ggplot2")
 
 ```
 
-vamos a trabajar con los datos `Hitters` de la librería `ISLR`. Encontramos NA entonces los eliminamos con la función `na.omit()`
+vamos a trabajar con los datos de `Hitters` de la librería `ISLR`. Encontramos elementos del tipo NA, entonces los eliminamos con la función `na.omit()`
 
 ```{r include=FALSE }
 datos = na.omit(Hitters)
@@ -56,14 +56,14 @@ datos %>%
   layer_points()
 ```
 
-Los salarios de los jugadores versus el número de Hits se comportan de la siguiente forma
+Los salarios de los jugadores versus el número de Hits se comportan de la siguiente forma:
 
 ```{r ref.label='chunk1', echo=FALSE}
 
 ```
-Nos interesa ajustar un modelo del tipo
+Nos interesa ajustar un modelo del tipo:
 $$ Y=\alpha+\beta X + \epsilon $$
- Donde $y$ es la variable **salario** y $X$ es la variable **Número de Hits**
+ Donde $Y$ es la variable **salario** y $X$ es la variable **Número de Hits**
 
 <!-- Esto es un comentario solamente, cómo:control+shift+C -->
 
@@ -92,7 +92,7 @@ datos %>%
   layer_densities(adjust = input_slider(.1,2, value = 1, step = .1, 
                                         label = "Bandiwidth"))
 ```
-Ahora queremos ver cuales son los salarios promedio según la liga a la que pertenecen los  jugadores.
+Ahora queremos ver cuáles son los salarios promedio según la liga a la que pertenecen los jugadores.
 
 ```{r echo= FALSE}
 salario = datos%>%
