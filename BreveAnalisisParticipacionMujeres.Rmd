@@ -2,7 +2,10 @@
 title: "Análisis sobre la Participación de las mujeres en los parlamentos"
 author: "Patricia A. Loto"
 date: "9 de mayo de 2019"
-output: html_document
+output: 
+  html_document:
+    theme: cerulean
+    runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -55,6 +58,10 @@ datosParlamento <- readr::read_csv("https://raw.githubusercontent.com/cienciaded
 dim(datosParlamento)
 head(datosParlamento)
 tail(datosParlamento)
+```
+
+```{r, echo=FALSE}
+datatable(datosParlamento, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T) )
 ```
 
 ## Limpieza y procesamiento de los datos 
@@ -183,12 +190,12 @@ ggsave("mujeresLATAMOrdenada.png",width = 10, height = 5, dpi = "retina")
 # ggplot de camara alta en latinoamérica  PUBLICADO
 #---------------------------------------------------------------------------------------------
 #Defino paleta de colores
-pL2<-lacroix_palette("PeachPear", n = 19, type = "continuous")
 
+pL3<-lacroix_palette("Pamplemousse",n=19, type = "continuous")
 Latam <- ggplot(camaraBajaLatam, aes(reorder(pais, totalPorcenCBaja), totalPorcenCBaja, size =(totalPorcenCBaja), text = paste('<b>País:</b>', pais,'\n <b> Mujeres:</b>', totalPorcenCBaja, '%' ))) + 
   #geom_point(show.legend = F) + 
   geom_col(aes(fill=pais)) +
-  scale_fill_manual(values =pL2) +  #pL2
+  scale_fill_manual(values =pL3) +  #pL2
   coord_flip()+ 
   theme_classic()+   #theme_wsj()theme_classic() +theme_economist()
   labs(title = "Mujeres en los parlamentos \n de Países de Latinoamérica" ,
@@ -234,6 +241,7 @@ ggsave("Latam.png",width = 10, height = 5, dpi = "retina")
 
 
 ```{r camaraAltaLatinoamerica, echo=FALSE,message = FALSE, warning = FALSE, results = 'hide'}
+pL2<-lacroix_palette("PeachPear", n = 19, type = "continuous")
 LatamAlta <- ggplot(camaraAltaLatam, aes(reorder(pais, totalPorcenCAlta), totalPorcenCAlta, size =(totalPorcenCAlta))) + 
           geom_col(aes(fill=pais)) +
           scale_fill_manual(values =pL2) +  #pL2
@@ -361,7 +369,7 @@ Este _dataset_ recoge algunos de los datos que se encuentran disponibles en la p
 
 ## Fuentes
 
-+ [#DatosDeMiercoles] (https://github.com/cienciadedatos/datos-de-miercoles)
++ [#DatosDeMiercoles](https://github.com/cienciadedatos/datos-de-miercoles)
 
 ## Notas interesantes sobre Igualdad de Género en la política
 
