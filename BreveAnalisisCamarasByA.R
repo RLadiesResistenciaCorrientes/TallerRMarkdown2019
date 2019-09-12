@@ -131,7 +131,7 @@ mujeresLATAMOrdenada + transition_states(totalPorcenCBaja, wrap = FALSE) +
   enter_grow() +
   enter_fade()
 
-# con porcentaje en las etiquetas
+# etiquetas con porcentaje
 mujeresLATAM <-ggplot(data =camaraBajaLatam, aes((reorder(pais, totalPorcenCBaja)), y=totalPorcenCBaja, fill=pais, text = paste('<b>País:</b>', pais,'\n <b> Mujeres:</b>', totalPorcenCBaja, '%' ))) + 
   geom_bar(stat="identity", position=position_dodge()) +              #aes(reorder(pais, totalPorcenCBaja)
   scale_colour_manual(values =pL) +  
