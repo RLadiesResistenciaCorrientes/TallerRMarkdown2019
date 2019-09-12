@@ -1,0 +1,111 @@
+---
+title: "Semana 18"
+date: "7/08/2019""
+output:  html_document
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(rworldmap)
+library(maps)
+library(ggthemes)
+library(DT)
+```
+
+Read data:
+
+```{r}
+felicidad <- readr::read_csv("https://raw.githubusercontent.com/cienciadedatos/datos-de-miercoles/master/datos/2019/2019-08-07/felicidad.csv")
+View(felicidad)
+```
+
+Clean data and calculate median:
+
+```{r}
+felicidad2018 <-felicidad %>%filter (!is.na(escalera_vida)) %>%group_by(pais)%>%filter(anio=="2018")%>% select(pais, anio,escalera_vida)
+
+datatable(felicidad2018)
+
+
+med_ratios <- student_ratio %>% 
+  filter(!is.na(student_ratio)) %>%      # remove NAs
+  group_by(country_code, indicator) %>%
+  filter(year == max(year)) %>%          # grab the most recent data for each country and 
+
+
+```
+
+Check names in med_ratios compared to map_data("world")
+
+```{r}
+prueba <-felicidad2018%>%rename(country=pais)
+View(prueba)
+arrests_map <- left_join(states_map, arrests, by = "region")
+https://www.datanovia.com/en/blog/how-to-create-a-map-using-ggplot2/
+
+anti_join(prueba, map_data("world"), by=c("country"="region"))
+#anti_join(med_ratios, map_data("world"), by = c("country", "region")) %>% View()
+```
+
+
+Need to recode some country names to match map_data:
+
+```{r}
+map(world)
+felicidadXpais <- prueba %>%
+  mutate(country = recode(country,
+                                "Afghanistán"= "Afghanistan",     
+                                "Bielorrusia" = "Belarus",
+                                "Bélgica" = "Belgium",
+                                "Bosnia y Herzegovina" ="Bosnia and Herzegovina",
+                                "Brasil" = "Brazil",
+                                "Camerún"="Cameroon", 
+                                "Congo (Brazzaville)" = "Congo",
+                                "Croacia"="Croatia",
+                          
+                                
+                          ))
+                                
+```
+
+Join median student teacher ratio data with map data:
+
+```{r}
+my_map_data <- felicidad2018 %>%
+  full_join(map_data("world"), by = c("country" = "region")) %>% 
+  filter(!grepl("Antartida",country)) #don't need Antarctica
+View (world)
+
+my_map_data <- med_ratios_fixed %>%
+  full_join(map_data("world"), by = c("country" = "region")) %>% 
+  filter(!grepl("Antarctica",country)) #don't need Antarctica
+```
+
+
+Plot:
+
+```{r}
+ggplot(my_map_data, aes(x = long, y = lat)) +
+     geom_polygon(aes(fill = median_ratio, group = group), color = "black", size = 0.2) +
+     scale_fill_gradient2(low = "darkgreen", high = "blue", midpoint = 17.428480) +
+     #scale_fill_gradient2()+  #paleta de lilas
+     #scale_fill_continuous_tableau()+ #paleta de azules
+     #scale_fill_viridis_c()+  #viridis
+     theme_fivethirtyeight() + 
+     theme(axis.line=element_blank(),
+           axis.text.x=element_blank(),
+           axis.text.y=element_blank(),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank()) +
+     labs(fill = "ratio",
+          title = "Median Student to Teacher Ratios",
+          caption = str_c(str_wrap("Median student-to-teacher ratio calculated across all education levels using the most recent data for each level. White indicates a median ratio close to the world median. Countries shown in blue have a smaller ratio, while countries shown in red have a larger (less favorable) ratio. Grey indicates missing data.", width = 120),"\nData Source: UNESCO\nVisualization: @AmandaRPlunkett")) 
+  
+```
+
+
+
+```{r}
+ggsave("studentTeacherRatios.png", width = 7.4, height = 4.5, dpi = "retina")
+```
