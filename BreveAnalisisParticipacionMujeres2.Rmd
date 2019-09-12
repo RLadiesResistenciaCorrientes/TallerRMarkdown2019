@@ -92,8 +92,9 @@ camaraBajaLatam <- filter(camaraBajaSi, pais %in% c("Argentina", "Bolivia" , "Br
 #sólo para mejorar la visualización 
 camaraBajaLatam[camaraBajaLatam$pais == "República Dominicana",2]<-"Rep.Dominicana"
 
+# renombro los nombres de las columnas para las tablas
 cabeceras<-camaraBajaLatam%>%rename(Codigo_Pais=codPais,Pais=pais,Porcentaje_Baja=totalPorcenCBaja,TotalCBaja=totalIntegrantesCBaja)
-#Muestra tabla con datatable y con kable
+# Con kable y DT muestro los datos ordenados en formato tabla
 #kable(cabeceras, 'html', table.attr='id="camaraBajaLatam_table"')
 #----------------------------------------------------------------------------------------------
 #CÁMARA ALTA O SENADO
@@ -101,15 +102,16 @@ cabeceras<-camaraBajaLatam%>%rename(Codigo_Pais=codPais,Pais=pais,Porcentaje_Baj
 #Agrupo por cámara alta o senado
 camaraAlta<- datosParlamento%>% group_by(codPais, pais)%>% filter (camara =="alta")%>%
   summarise(totalPorcenCAlta=(sum(porcentaje_mujeres,na.rm = TRUE)), totalIntegrantesCAlta=(sum(datosParlamento$numero_integrantes, na.rm = TRUE)))%>%arrange(totalPorcenCAlta)
-#View(camaraAlta)
+
 
 # selecciono sólo los que tienen representacion en cámara baja o única
 camaraAltaSi <-camaraAlta %>%filter(totalPorcenCAlta>0)
-#View(camaraAltaSi)
+
 # selecciono sólo los países pertenecientes a Latinoamérica
 camaraAltaLatam <- filter(camaraAltaSi, pais %in% c("Argentina", "Bolivia" , "Brasil","Chile", "Colombia", "Costa Rica", "Cuba", "Ecuador", "El Salvador", "Guatemala", "Honduras", "México", "Nicaragua", "Panamá", "Paraguay", "Puerto Rico", "Perú", "República Dominicana", "Uruguay", "Venezuela"))%>% arrange(desc(totalPorcenCAlta))
+
 #muestro tabla
-#kable(camaraAltaLatam, 'html', table.attr='id="camaraAltaLatam_table"')
+#DT(camaraAltaLatam)
 
 #Selecciono los países pertenecientes al continente europeo
 camaraAltaEuropa <- filter(camaraAltaSi, pais %in% c("Albania","Alemania","Andorra","Armenia","Austria","Azerbaiyán","Bélgica","Bielorrusia","Bosnia y Herzegovina", "Bulgaria","Chipre", "Croacia", "Dinamarca", "Eslovaquia", "España", "Estonia", "Finlandia",  "Francia",  "Georgia", "Grecia", "Hungría","Irlanda", "Islandia", 
@@ -138,7 +140,7 @@ Mediante las siguientes visualizaciones podremos conocer la situación actual de
 #----------------------------------------------------------------------------------------------
 # ggplot de camara baja en latinoamérica con fondo en en negro PUBLICADO
 #---------------------------------------------------------------------------------------------
-datatable(cabeceras)
+DT(cabeceras)
 
 #Defino paleta de colores
 pL<-lacroix_palette("PassionFruit", n = 19, type = "continuous")
