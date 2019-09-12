@@ -362,9 +362,9 @@ LatamAlta <- ggplot(camaraAltaLatam, aes(reorder(pais, totalPorcenCAlta), totalP
   labs(title = "Mujeres en los parlamentos de Países de Latinoamérica\n Cámara Alta o Senado",
        subtitle = "Al 1ro de enero de 2019",
        x = "",
-       y = "% Mujeres",
+       y = "Mujeres",
        caption="#DatosDeMiercoles por Patricia Loto", legend=" ") +
-  geom_text(aes(label = totalPorcenCAlta),
+  geom_text(aes((label = paste(totalPorcenCAlta, "%")),
             position = position_stack(), size=2.5, vjust=1.5, hjust=1.5 ,col="black")+
   theme(axis.text.x =element_text(color="black", size=9),  #
         axis.text.y =element_text(color="black", size=9),
