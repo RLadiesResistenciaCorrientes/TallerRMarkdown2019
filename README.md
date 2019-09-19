@@ -1,4 +1,4 @@
-##**Meetup Mayo 2019: Taller Introductorio de RMarkdown**
+## **Meetup Mayo 2019: Taller Introductorio de RMarkdown**
 
 Repositorio que contiene la presentación, los scripts y ejemplos creados para R-Ladies Resistencia-Corrientes.
 
