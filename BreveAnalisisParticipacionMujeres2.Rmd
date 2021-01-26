@@ -1,0 +1,387 @@
+---
+title: "Análisis sobre la Participación de las mujeres en los parlamentos"
+author: "Patricia A. Loto"
+date: "9 de mayo de 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## Breve descripción de los datos
+
+
+|Variable       |Clase               |Descripción |
+|:--------------|:-------------------|:-----------|
+|pais           |caracter              | Países incluidos en el dataset |
+|camara      |caracter            | Si los datos corresponden a la cámara `alta`, `baja` o a la cámara `única`.  |
+|porcentaje_mujeres        |numérica            | Porcentaje de mujeres en esa cámara (`NA` para el resto de las cámaras)|
+|cuota_genero | caracter | Si existe o no cuota de género en esa cámara. (`NA` si no existe información) |
+|edad_elegibilidad | numérica | Edad mínima requerida para postular a esa cámara (`NA` si no existe información)
+| integrante_mas_joven | numérica| Integrante más joven en este momento (`NA` si no existe información)
+| numero_integrantes | numérica | Número de integrantes en este momento (`NA` si no existe información)
+| iso_pais | caracter | código ISO del país
+
+
+
+## Librerías necesarias
+```{r Librerias, message = FALSE, warning = FALSE,results = 'hide'}
+library(tidyverse)
+library(easypackages)
+library(janitor)
+library(gganimate)
+library(gifski)
+library(png)
+library(LaCroixColoR)
+library(extrafont)
+library(plotly)
+library(treemapify)
+library(knitr)
+library(DT)
+
+
+```
+
+
+```{r lecturaDatos, include=FALSE}
+datosParlamento <- readr::read_csv("https://raw.githubusercontent.com/cienciadedatos/datos-de-miercoles/master/datos/2019/2019-05-08/datos_uip.csv")
+
+```
+
+## Conociendo nuestros datos
+
+```{r VerificoDatos, echo=TRUE, message = FALSE, warning = FALSE, results = 'hide'}
+
+dim(datosParlamento)
+head(datosParlamento)
+tail(datosParlamento)
+```
+
+## Limpieza y procesamiento de los datos 
+
+
+A continuación, calcularemos el porcentaje de participación femenina en la Cámara baja o única y en la Cámara Alta en
+países de Latinoamérica. Y por último, calcularemos el porcentaje de mujeres en parlamentos de Países de Europa. 
+
+
+```{r CalculoPorcentajes, echo=TRUE, message = FALSE, warning = FALSE, results = 'hide'}
+#----------------------------------------------------------------------------------------------
+#CÁMARA BAJA O UNICAMERAL
+#----------------------------------------------------------------------------------------------
+datosParlamento <- clean_names(datosParlamento)
+
+names(datosParlamento)[8] = "codPais"
+
+#Agrupo por cámara baja o única 
+
+camaraBaja<- datosParlamento%>% group_by(codPais, pais)%>% filter (camara =="baja" | camara =="única")%>%
+  summarise(totalPorcenCBaja=(sum(porcentaje_mujeres,na.rm = TRUE)), totalIntegrantesCBaja=(sum(numero_integrantes, na.rm = TRUE)))%>%arrange(totalPorcenCBaja)
+
+
+#Panamá aparece sin datos pero en la fuente original si los tienen
+
+# selecciono sólo los que tienen representacion en cámara baja o única
+camaraBajaSi <-camaraBaja %>%filter(totalPorcenCBaja>0)
+
+
+camaraBajaLatam <- filter(camaraBajaSi, pais %in% c("Argentina", "Bolivia" , "Brasil","Chile", "Colombia", "Costa Rica", "Cuba", "Ecuador", "El Salvador", "Guatemala", "Honduras", "México", "Nicaragua", "Panamá", "Paraguay", "Puerto Rico", "Perú", "República Dominicana", "Uruguay", "Venezuela"))
+#View(camaraBajaLatam)
+
+#sólo para mejorar la visualización 
+camaraBajaLatam[camaraBajaLatam$pais == "República Dominicana",2]<-"Rep.Dominicana"
+
+# renombro los nombres de las columnas para las tablas
+cabeceras<-camaraBajaLatam%>%rename(Codigo_Pais=codPais,Pais=pais,Porcentaje_Baja=totalPorcenCBaja,TotalCBaja=totalIntegrantesCBaja)
+# Con kable y DT muestro los datos ordenados en formato tabla
+#kable(cabeceras, 'html', table.attr='id="camaraBajaLatam_table"')
+#----------------------------------------------------------------------------------------------
+#CÁMARA ALTA O SENADO
+#----------------------------------------------------------------------------------------------
+#Agrupo por cámara alta o senado
+camaraAlta<- datosParlamento%>% group_by(codPais, pais)%>% filter (camara =="alta")%>%
+  summarise(totalPorcenCAlta=(sum(porcentaje_mujeres,na.rm = TRUE)), totalIntegrantesCAlta=(sum(datosParlamento$numero_integrantes, na.rm = TRUE)))%>%arrange(totalPorcenCAlta)
+
+
+# selecciono sólo los que tienen representacion en cámara baja o única
+camaraAltaSi <-camaraAlta %>%filter(totalPorcenCAlta>0)
+
+# selecciono sólo los países pertenecientes a Latinoamérica
+camaraAltaLatam <- filter(camaraAltaSi, pais %in% c("Argentina", "Bolivia" , "Brasil","Chile", "Colombia", "Costa Rica", "Cuba", "Ecuador", "El Salvador", "Guatemala", "Honduras", "México", "Nicaragua", "Panamá", "Paraguay", "Puerto Rico", "Perú", "República Dominicana", "Uruguay", "Venezuela"))%>% arrange(desc(totalPorcenCAlta))
+
+#muestro tabla
+#DT(camaraAltaLatam)
+
+#Selecciono los países pertenecientes al continente europeo
+camaraAltaEuropa <- filter(camaraAltaSi, pais %in% c("Albania","Alemania","Andorra","Armenia","Austria","Azerbaiyán","Bélgica","Bielorrusia","Bosnia y Herzegovina", "Bulgaria","Chipre", "Croacia", "Dinamarca", "Eslovaquia", "España", "Estonia", "Finlandia",  "Francia",  "Georgia", "Grecia", "Hungría","Irlanda", "Islandia", 
+                                                     "Italia", "Kazajistán", "Letonia", "Liechtenstein", "Lituania", "Luxemburgo", "Macedonia","Malta", "Moldavia", "Mónaco","Montenegro", "Noruega", "Países Bajos", "Polonia", "Portugal", "Reino Unido", "República Checa", "Rumanía", "Rusia", "San Marino", "Serbia", "Suecia","Suiza", "Turquía", "Ucrania"))
+#View(camaraAltaEuropa)
+
+```
+
+
+
+
+## Breve análisis de la presencia parlamentaria de mujeres en Cámara Baja o Única en Países de Latinoámerica.
+
+
+Nos enfocaremos en averiguar cuáles son los países de nuestra región que cuentan con los niveles más altos y más bajos de participación femenina en su respectivos parlamento, es decir en Cámara baja o Única o en la Cámara Alta o senado.
+
+
+**¿Cuál es el porcentaje de mujeres en la cámara Baja o Única en países de Latinoamérica?** 
+Mediante las siguientes visualizaciones podremos conocer la situación actual de nuestra región.
+
+
+
+#### Visualización nro. 1. Diagramas de barras (barplots)
+
+```{r camaraBajaLatinoamerica, echo=FALSE,message = FALSE, warning = FALSE, results = 'hide'}
+#----------------------------------------------------------------------------------------------
+# ggplot de camara baja en latinoamérica con fondo en en negro PUBLICADO
+#---------------------------------------------------------------------------------------------
+DT(cabeceras)
+
+#Defino paleta de colores
+pL<-lacroix_palette("PassionFruit", n = 19, type = "continuous")
+
+mujeresLATAMOrdenada <- ggplot(data =camaraBajaLatam, aes((reorder(pais, totalPorcenCBaja)), y=totalPorcenCBaja, fill=pais, text = paste('<b>País:</b>', pais,'\n <b> Mujeres:</b>', totalPorcenCBaja, '%' ))) + 
+  geom_bar(stat="identity", position=position_dodge()) +              #aes(reorder(pais, totalPorcenCBaja)
+  scale_colour_manual(values =pL) +  
+  scale_fill_manual(values =pL) +
+  labs (x = "", y = "Porcentaje", 
+        title= ("Mujeres en los parlamentos \n de Países de Latinoamérica" ),
+        subtitle= ("Cámara baja o única"),
+        caption = " Fuente: #DatosdeMiercoles por Patricia Loto", legend=" ") +
+  geom_text(aes(y = totalPorcenCBaja,label = totalPorcenCBaja),
+            position = position_stack(), size=2.5, vjust=2, hjust=0.5 ,col="white")+ # agrego título al grÃ¡fico
+  theme (axis.text.x =element_text(angle=90, vjust = 1, hjust=0.8, color="white", size=11),
+         axis.text.y= element_text(color="white", size=11),
+         plot.title = element_text(family="Palatino",
+                                   # size=rel(1), 
+                                   size = 14,
+                                   vjust=1.4, 
+                                   hjust=0.5,                        
+                                   # position_identity(center),   
+                                   face="bold",      #Tipo: Letra negra, otras posibilidades son "plain", "italic", "bold" y "bold.itali
+                                   color="white", #Color del texto  color=maroon, lightblue
+                                   lineheight=1.0),legend.text= element_blank(),
+         plot.subtitle = element_text(hjust = 0.5, color="white"),
+         plot.caption = element_text(color = "green", face = "bold", size = 9),
+         legend.position = "none",
+         panel.border = element_blank(),
+         panel.background = element_blank(),
+         panel.grid = element_blank(),
+         rect = element_rect(fill = "black", color = "black"))+
+    ylim(0,60)
+ 
+mujeresLATAMOrdenada
+ggsave("mujeresLATAMOrdenada.png",width = 10, height = 5, dpi = "retina")
+```
+
+
+
+
+#### Visualización nro. 2. Diagramas de barras horizontales
+
+
+
+```{r camaraBajaLatinoamerica2, echo=FALSE, message = FALSE, warning = FALSE, results = 'hide'}
+#----------------------------------------------------------------------------------------------
+# ggplot de camara alta en latinoamérica  PUBLICADO
+#---------------------------------------------------------------------------------------------
+#Defino paleta de colores
+pL2<-lacroix_palette("PeachPear", n = 19, type = "continuous")
+
+Latam <- ggplot(camaraBajaLatam, aes(reorder(pais, totalPorcenCBaja), totalPorcenCBaja, size =(totalPorcenCBaja), text = paste('<b>País:</b>', pais,'\n <b> Mujeres:</b>', totalPorcenCBaja, '%' ))) + 
+  #geom_point(show.legend = F) + 
+  geom_col(aes(fill=pais)) +
+  scale_fill_manual(values =pL2) +  #pL2
+  coord_flip()+ 
+  theme_classic()+   #theme_wsj()theme_classic() +theme_economist()
+  labs(title = "Mujeres en los parlamentos \n de Países de Latinoamérica" ,
+       subtitle = "Cámara baja o única \n Al 1ro de enero de 2019",
+       x = "",
+       y = "Porcentaje",
+       caption="#DatosDeMiercoles por Patricia Loto", legend=" ") +
+    geom_text(aes(label = totalPorcenCBaja),
+          position = position_stack(), size=3, vjust=0.5, hjust=1.5 ,col="blue")+
+  theme(axis.text.x =element_text(color="black", size=9),  #
+        axis.text.y =element_text(color="black", size=9),
+        plot.caption = element_text(color = "lightblue", face ="bold", size = 10, vjust=1),  ##562457
+        plot.title = element_text(size=10,
+                                  family = "Palatino",
+                                  #size=rel(0.4),
+                                  vjust=2,
+                                  hjust=0.5,
+                                  #position_identity(center),   
+                                  face="bold",       
+                                  color="black",     
+                                  lineheight=1.2), 
+                                  legend.position= " ", 
+                                   legend.text= element_blank(),
+        plot.subtitle = element_text(hjust = 0.5, size = 11))
+ 
+
+Latam
+ggsave("Latam.png",width = 10, height = 5, dpi = "retina")
+
+
+```
+
+
+
+
+## Presencia parlamentaria de mujeres en Cámara Alta o Senado en Países de Latinoámerica
+
+**¿Cuál es el porcentaje de mujeres en la Cámara  Alta o Senado en países de Latinoamérica?**
+
+
+
+#### Visualización nro. 3.Diagramas de barras (barplots)
+
+
+```{r camaraAltaLatinoamerica, echo=FALSE,message = FALSE, warning = FALSE, results = 'hide'}
+LatamAlta <- ggplot(camaraAltaLatam, aes(reorder(pais, totalPorcenCAlta), totalPorcenCAlta, size =(totalPorcenCAlta))) + 
+          geom_col(aes(fill=pais)) +
+          scale_fill_manual(values =pL2) +  #pL2
+          coord_flip()+ 
+          theme_classic()+   #theme_wsj()theme_classic() +theme_economist()
+          labs(title = "Mujeres en los parlamentos de Países de Latinoamérica\n Cámara Alta o Senado",
+          subtitle = "Al 1ro de enero de 2019",
+          x = "",
+          y = "% Mujeres",
+          caption="#DatosDeMiercoles por Patricia Loto", legend=" ") +
+          geom_text(aes(label = totalPorcenCAlta),
+          position = position_stack(), size=2.5, vjust=1.5, hjust=1.5 ,col="black")+
+          theme(axis.text.x =element_text(color="black", size=9),  #
+                axis.text.y =element_text(color="black", size=9),
+                plot.caption = element_text(color = "brown", face ="bold", size = 10, vjust=1),  ##562457
+                plot.title = element_text(size=10,
+                                  family = "Palatino",
+                                  vjust=2,
+                                  hjust=0.5,
+                                  #position_identity(center),   
+                                  face="bold",       
+                                  color="black",     
+                                  lineheight=1.2), legend.position= " ", legend.text= element_blank(),
+              plot.subtitle = element_text(hjust = 0.5, size = 11))
+LatamAlta
+```
+
+
+## Presencia parlamentaria de mujeres en Cámara Alta o Senado en países del continente Europeo
+
+Mediante las siguientes visualizaciones podremos conocer la situación actual de las mujeres en los parlamentos europeos. 
+
+
+
+#### Visualización nro. 4. Treemap
+
+
+
+```{r treemapPaisesEuropeos1, echo=TRUE, message=FALSE, warning=FALSE, results = 'hide'}
+
+pM5<-lacroix_palette("PeachPear", n = 14, type = "continuous")
+treemap<- ggplot(camaraAltaEuropa, aes(area = totalPorcenCAlta, fill = pais, 
+                                       label =totalPorcenCAlta)) +
+  geom_treemap(colour = "black") +
+  geom_treemap_text(family="Tahoma",
+                    colour = "black",
+                    place = "centre",
+                    grow = F,
+                    reflow = T) +
+  scale_fill_manual(values = pM5) +
+  labs(fill ="", title = "Porcentaje de mujeres en parlamentos \n de países pertenecientes al continente Europeo", x="", y=" ",
+       caption = "Fuente: #DatosDeMiercoles por Patricia Loto") +
+  theme_grey() +
+  theme(plot.title=element_text(family="Tahoma", hjust=0.5), plot.caption=element_text(family="Palatino", color = "darkblue"), axis.text.x =element_blank(), axis.text.y =element_blank(), axis.ticks.x = element_blank() , axis.ticks.y = element_blank())     
+
+ggsave("TreemapParlamentoEuropeo.png",width = 10, height = 5, dpi = "retina")
+treemap
+#agregaAnimación
+#treemap +transition_states(pais) +
+ # shadow_mark()
+
+```
+
+
+### Visualización nro. 5.
+
+
+```{r trremapPaisesEuropeos, echo=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+#Treemap Pamplemousse
+#-----------------------------------------------------------------------------------------
+pL5<-lacroix_palette("Pamplemousse",n=14, type = "continuous")
+treemap2<- ggplot(camaraAltaEuropa, 
+                 aes(area = totalPorcenCAlta, fill = pais, label = totalPorcenCAlta,
+                     '', totalPorcenCAlta )) +
+  geom_treemap(colour = "white") +
+  geom_treemap_text(family="Tahoma",
+                    colour = "white",
+                    place = "centre",
+                    grow = F,
+                    reflow = T) +
+  scale_fill_manual(values = pL5) +
+  labs(fill ="", title = "Porcentaje de mujeres en parlamentos \n de países pertenecientes al continente Europeo", x="", y=" ",
+       caption = "Fuente: #DatosDeMiercoles  por Patricia Loto") +
+  theme_grey() +
+  theme(plot.title=element_text(family="Tahoma", hjust=0.5), plot.caption=element_text(family="Palatino", color = "pink", face="bold"), axis.text.x =element_blank(), axis.text.y =element_blank(), axis.ticks.x = element_blank() , axis.ticks.y = element_blank())     
+
+ggsave("TreemapParlamentoEuropeo2.png", width = 10, height = 5, dpi = "retina")
+treemap2
+```
+
+
+### Resultados.
+
+**A nivel Regional.**
+
+Los países de Latinoamérica con más altos porcentajes de participación con respecto a la **cámara baja** o **única** son:
+
+* Cuba con el 53.22 %
+* Bolivia con el 53.08 %
+* México con el 48.20 %
+* Costa Rica con el 45.61 %
+* Nicaragua con el 44.57 % y
+* Argentina con el 38.82.
+Mientras que en las últimas posiciones se encuentran Brasil y Paraguay con el 15.01 y el 15 % respectivamente.
+
+
+Con respecto a la **cámara alta** o **Senado**, los países de Latinoamérica que llevan la delantera respecto a otros países de la región son: **México**, **Bolivia** y **Argentina** con el 49.22, 47.22 y 41.67% respectivamente. Cabe destacar, que en el último puesto se encuentra República Dominicana con sólo el 9.38 % de participación.
+
+**A Nivel Continente Europeo**
+
+Los países pertenecientes al continente europeo con mayor presencia femenina en los parlamentos son:
+
+* Bélgica con el 43.33 %,
+* Alemania con el 39.13 %
+* Austria con el 36.07 %
+* Países bajos con el 36 %
+* Italia con el 34.38 % y
+* Francia con el 32.18 %. 
+Por otro lado, en las últimas posiciones se encuentran República Checa, Suiza y Polonia con el 16.05, 15.22 y 14 % respectivamente.
+
+
+## Consideraciones sobre la Fuente de datos utilizada
+
+Este _dataset_ recoge algunos de los datos que se encuentran disponibles en la plataforma de datos abiertos de la Unión Interparlamentaria [plataforma de datos abiertos de la Unión Interparlamentaria](data.ipu.org). Y la selección y traducción al español estuvo a cargo de [Riva Quiroga](https://twitter.com/rivaquiroga).
+
+## Fuentes
+
++ [#DatosDeMiercoles] (https://github.com/cienciadedatos/datos-de-miercoles)
+
+## Notas interesantes sobre Igualdad de Género en la política
+
++ Aplicación shiny sobre mujeres en el parlamento (2000 - 2018) desarrollada por [Gabriela Matthieu](https://twitter.com/calcita13). [Aplicación Shiny](https://calcita.shinyapps.io/women_in_politics)
+
+* [Slides presentación LatinR](https://gitlab.com/calcita/Presenta_mep/blob/master/Presenta_mep.pdf)
+
++ <https://laciudaddelasdiosas.wordpress.com/2008/03/06/el-parlamento-europeo-y-la-igualdad-de-genero/>
+
++ <http://www.oecd.org/gender/data/female-share-of-seats-in-national-parliaments.html>
+
++ <https://www.elmundo.es/espana/verano/2017/07/30/5978c253e5fdeaf8078b45bb.html>
+
++ <https://www.nexos.com.mx/?p=40895>
+
